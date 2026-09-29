@@ -1,0 +1,19 @@
+# Go
+/bin/
+*.test
+*.out
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# Frontend
+node_modules/
+web/dist/
+
+# Misc
+.env
+.DS_Store
+/tmp/
+screenshots/
