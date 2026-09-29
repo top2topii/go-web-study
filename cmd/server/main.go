@@ -11,9 +11,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
+	"shopadmin/internal/db"
 	"shopadmin/internal/server"
 )
 
@@ -31,6 +33,7 @@ func main() {
 
 type config struct {
 	addr     string
+	dbPath   string
 	logLevel slog.Level
 	logJSON  bool
 }
@@ -41,6 +44,7 @@ func loadConfig(args []string, getenv func(string) string) (config, error) {
 	fs := flag.NewFlagSet("server", flag.ContinueOnError)
 
 	addr := fs.String("addr", envOr(getenv, "ADDR", "127.0.0.1:8080"), "listen address")
+	dbPath := fs.String("db", envOr(getenv, "DB_PATH", "data/shopadmin.db"), "SQLite 파일 경로")
 	level := fs.String("log-level", envOr(getenv, "LOG_LEVEL", "info"), "debug|info|warn|error")
 	logJSON := fs.Bool("log-json", getenv("LOG_JSON") == "1", "JSON 로그 출력")
 
@@ -52,7 +56,7 @@ func loadConfig(args []string, getenv func(string) string) (config, error) {
 	if err := lvl.UnmarshalText([]byte(*level)); err != nil {
 		return config{}, fmt.Errorf("invalid log level %q: %w", *level, err)
 	}
-	return config{addr: *addr, logLevel: lvl, logJSON: *logJSON}, nil
+	return config{addr: *addr, dbPath: *dbPath, logLevel: lvl, logJSON: *logJSON}, nil
 }
 
 func envOr(getenv func(string) string, key, fallback string) string {
@@ -81,9 +85,24 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout 
 	}
 	logger := newLogger(stdout, cfg)
 
+	if err := os.MkdirAll(filepath.Dir(cfg.dbPath), 0o755); err != nil {
+		return err
+	}
+	conn, err := db.Open(ctx, cfg.dbPath)
+	if err != nil {
+		return err
+	}
+	// defer는 LIFO(나중에 등록한 것이 먼저 실행). Shutdown이 끝난 뒤 DB가 닫힌다.
+	defer conn.Close()
+
+	// 서버 시작 전에 스키마를 최신으로 맞춘다.
+	if err := db.Migrate(ctx, conn, logger); err != nil {
+		return err
+	}
+
 	srv := &http.Server{
 		Addr:    cfg.addr,
-		Handler: server.New(logger, version),
+		Handler: server.New(logger, conn, version),
 		// 타임아웃이 없으면 느린 클라이언트가 커넥션을 무한정 붙잡을 수 있다(Slowloris).
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,

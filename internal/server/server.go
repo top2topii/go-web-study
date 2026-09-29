@@ -2,24 +2,31 @@
 package server
 
 import (
+	"database/sql"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"shopadmin/internal/store"
 )
 
 // Server는 핸들러들이 공유하는 의존성(로거, DB 등)을 보관한다.
 // 핸들러를 Server의 메서드로 만들면 전역 변수 없이 의존성에 접근할 수 있다.
 type Server struct {
 	logger  *slog.Logger
+	db      *sql.DB        // 트랜잭션, Ping 등 저수준 작업용
+	q       *store.Queries // sqlc가 생성한 쿼리 메서드
 	version string
 	started time.Time
 	mux     *http.ServeMux
 }
 
 // New는 미들웨어까지 감싼 최종 http.Handler를 반환한다.
-func New(logger *slog.Logger, version string) http.Handler {
+func New(logger *slog.Logger, db *sql.DB, version string) http.Handler {
 	s := &Server{
 		logger:  logger,
+		db:      db,
+		q:       store.New(db),
 		version: version,
 		started: time.Now(),
 		mux:     http.NewServeMux(),

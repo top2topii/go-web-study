@@ -1,0 +1,22 @@
+# sqlc: SQL 쿼리 → 타입 안전한 Go 코드 생성. `make generate`로 실행.
+#
+# 주의: internal/db/queries/*.sql 에는 한글 등 멀티바이트 문자를 쓰지 말 것(주석 포함).
+# sqlc(v1.31, sqlite)가 sqlc.arg()를 ?로 바꿀 때 바이트/문자 오프셋이 어긋나
+# "edited query syntax is invalid" 에러가 난다.
+version: "2"
+sql:
+  - engine: sqlite
+    schema: internal/db/migrations   # goose 파일의 Up 부분만 읽는다
+    queries: internal/db/queries
+    gen:
+      go:
+        package: store
+        out: internal/store
+        emit_json_tags: true
+        emit_empty_slices: true      # 결과 없음 → nil 대신 [] (JSON에서 null 방지)
+        # NULL 가능 컬럼을 sql.NullString 대신 *string으로. JSON에서 자연스럽게 null이 된다.
+        emit_pointers_for_null_types: true
+        overrides:
+          # 비밀번호 해시는 절대 JSON으로 나가지 않게
+          - column: users.password_hash
+            go_struct_tag: json:"-"

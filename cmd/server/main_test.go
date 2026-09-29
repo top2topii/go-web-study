@@ -20,18 +20,18 @@ func TestLoadConfig(t *testing.T) {
 	}{
 		{
 			name: "defaults",
-			want: config{addr: "127.0.0.1:8080", logLevel: slog.LevelInfo},
+			want: config{addr: "127.0.0.1:8080", dbPath: "data/shopadmin.db", logLevel: slog.LevelInfo},
 		},
 		{
 			name: "env overrides default",
-			env:  map[string]string{"ADDR": ":9000", "LOG_LEVEL": "debug", "LOG_JSON": "1"},
-			want: config{addr: ":9000", logLevel: slog.LevelDebug, logJSON: true},
+			env:  map[string]string{"ADDR": ":9000", "DB_PATH": "/tmp/x.db", "LOG_LEVEL": "debug", "LOG_JSON": "1"},
+			want: config{addr: ":9000", dbPath: "/tmp/x.db", logLevel: slog.LevelDebug, logJSON: true},
 		},
 		{
 			name: "flag overrides env",
 			args: []string{"-addr", ":7000"},
 			env:  map[string]string{"ADDR": ":9000"},
-			want: config{addr: ":7000", logLevel: slog.LevelInfo},
+			want: config{addr: ":7000", dbPath: "data/shopadmin.db", logLevel: slog.LevelInfo},
 		},
 		{
 			name:    "invalid log level",

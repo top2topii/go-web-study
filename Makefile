@@ -1,10 +1,20 @@
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -X main.version=$(VERSION)
 
-.PHONY: run test build fmt vet check
+SQLC := go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1
+
+.PHONY: run test build fmt vet check generate seed
 
 run:
 	go run ./cmd/server
+
+# internal/db/queries/*.sql → internal/store/*.go
+generate:
+	$(SQLC) generate
+
+# DB 파일을 지우고 스키마 + 데모 데이터로 다시 만든다
+seed:
+	go run ./cmd/seed
 
 test:
 	go test ./...

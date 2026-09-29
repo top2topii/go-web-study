@@ -8,4 +8,9 @@ package server
 //   - "/static/"          → 끝이 /이면 하위 경로 전체 매칭
 func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/health", s.handleHealth)
+
+	s.mux.HandleFunc("GET /api/products", s.handleListProducts)
+	s.mux.HandleFunc("GET /api/products/{id}", s.handleGetProduct)
+
+	s.mux.HandleFunc("GET /api/stats/revenue", s.handleRevenue)
 }
