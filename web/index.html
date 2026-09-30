@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ShopAdmin</title>
+    <!--
+      FOUC(깜빡임) 방지: React가 뜨기 전에 저장된 테마·브랜드·언어를 <html>에 먼저 적용한다.
+      이게 없으면 다크 모드 사용자는 새로고침마다 흰 화면이 잠깐 보인다.
+      키 이름은 src/lib/theme-context.ts, src/i18n/index.ts 와 같아야 한다.
+    -->
+    <script>
+      (function () {
+        try {
+          var el = document.documentElement
+          var mode = localStorage.getItem('theme') || 'system'
+          var dark = mode === 'dark' || (mode === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
+          el.classList.toggle('dark', dark)
+          el.dataset.brand = localStorage.getItem('brand') || 'blue'
+          var lang = localStorage.getItem('lang')
+          if (lang) el.lang = lang
+        } catch (e) {}
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

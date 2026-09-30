@@ -1,0 +1,235 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+/* 한글 글리프를 필요한 조각만 내려받는 dynamic subset */
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+
+/* dark: 변형은 <html class="dark"> 아래 모든 요소에 적용된다.
+   Radix 포털(드롭다운, 시트, 툴팁)은 #root 밖 body에 붙으므로 클래스는 반드시 <html>에 둔다. */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * ─── 토큰 구조 ───────────────────────────────────────────────
+ * 1) :root / .dark           : 의미(semantic) 토큰의 실제 값 (라이트/다크)
+ * 2) [data-brand=...]        : 브랜드 색(primary, ring, sidebar-primary)만 덮어쓴다
+ * 3) @theme inline           : 토큰 → Tailwind 유틸리티 매핑 (bg-primary, text-success ...)
+ *
+ * 컴포넌트는 항상 의미 토큰(bg-primary)만 쓰고 원시 색(bg-blue-600)은 쓰지 않는다.
+ * 그래야 테마·브랜드 전환이 CSS 변수 교체만으로 끝난다.
+ */
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Pretendard Variable', Pretendard, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
+
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ─── 1) 라이트 ─── */
+:root {
+    color-scheme: light; /* 네이티브 스크롤바·폼 컨트롤도 라이트로 */
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --success: oklch(0.527 0.154 150.069);
+    --success-foreground: oklch(0.985 0 0);
+    --warning: oklch(0.555 0.163 48.998);
+    --warning-foreground: oklch(0.985 0 0);
+    --info: oklch(0.546 0.245 262.881);
+    --info-foreground: oklch(0.985 0 0);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.625rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+}
+
+/* ─── 1) 다크 ─── */
+.dark {
+    color-scheme: dark;
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --success: oklch(0.792 0.209 151.711);
+    --success-foreground: oklch(0.205 0 0);
+    --warning: oklch(0.828 0.189 84.429);
+    --warning-foreground: oklch(0.205 0 0);
+    --info: oklch(0.707 0.165 254.624);
+    --info-foreground: oklch(0.205 0 0);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.922 0 0);
+    --sidebar-primary-foreground: oklch(0.205 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+}
+
+/*
+ * ─── 2) 브랜드 ───
+ * 브랜드 값은 --brand / --brand-foreground 두 개만 정하고, 여러 토큰이 이를 참조한다.
+ *
+ * 주의(명시도): :root[data-brand=x] 는 (0,2,0)이라 .dark (0,1,0)를 이긴다.
+ * 그래서 브랜드마다 라이트 블록과 .dark[data-brand=x] 블록을 따로 두고,
+ * 다크 블록을 뒤에 둔다(같은 명시도면 나중 규칙이 이김).
+ * '.dark [data-brand=x]'(공백)는 테마 메뉴의 색 견본 span처럼 하위 요소에 data-brand를 건 경우용.
+ * neutral은 브랜드 없음: 위 :root/.dark 기본값을 그대로 쓴다.
+ */
+:root[data-brand]:not([data-brand='neutral']) {
+    --primary: var(--brand);
+    --primary-foreground: var(--brand-foreground);
+    --ring: var(--brand);
+    --sidebar-primary: var(--brand);
+    --sidebar-primary-foreground: var(--brand-foreground);
+    --sidebar-ring: var(--brand);
+}
+
+[data-brand='blue'] {
+    --brand: oklch(0.546 0.245 262.881);
+    --brand-foreground: oklch(0.985 0 0);
+}
+[data-brand='violet'] {
+    --brand: oklch(0.541 0.281 293.009);
+    --brand-foreground: oklch(0.985 0 0);
+}
+[data-brand='emerald'] {
+    --brand: oklch(0.508 0.118 165.612);
+    --brand-foreground: oklch(0.985 0 0);
+}
+[data-brand='rose'] {
+    --brand: oklch(0.586 0.253 17.585);
+    --brand-foreground: oklch(0.985 0 0);
+}
+[data-brand='orange'] {
+    --brand: oklch(0.553 0.195 38.402);
+    --brand-foreground: oklch(0.985 0 0);
+}
+
+.dark[data-brand='blue'],
+.dark [data-brand='blue'] {
+    --brand: oklch(0.623 0.214 259.815);
+    --brand-foreground: oklch(0.985 0 0);
+}
+.dark[data-brand='violet'],
+.dark [data-brand='violet'] {
+    --brand: oklch(0.606 0.25 292.717);
+    --brand-foreground: oklch(0.985 0 0);
+}
+.dark[data-brand='emerald'],
+.dark [data-brand='emerald'] {
+    --brand: oklch(0.696 0.17 162.48);
+    --brand-foreground: oklch(0.262 0.051 172.552);
+}
+.dark[data-brand='rose'],
+.dark [data-brand='rose'] {
+    --brand: oklch(0.645 0.246 16.439);
+    --brand-foreground: oklch(0.985 0 0);
+}
+.dark[data-brand='orange'],
+.dark [data-brand='orange'] {
+    --brand: oklch(0.705 0.213 47.604);
+    --brand-foreground: oklch(0.266 0.079 36.259);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    /* 한글은 단어 단위 줄바꿈이 자연스럽다 */
+    word-break: keep-all;
+  }
+  html {
+    @apply font-sans;
+  }
+}
