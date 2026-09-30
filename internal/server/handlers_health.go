@@ -17,7 +17,7 @@ type healthResponse struct {
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	resp := healthResponse{
 		Status:  "ok",
-		Version: s.version,
+		Version: s.cfg.Version,
 		Uptime:  time.Since(s.started).Round(time.Second).String(),
 		DB:      "ok",
 	}

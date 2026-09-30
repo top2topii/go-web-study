@@ -32,10 +32,11 @@ func main() {
 }
 
 type config struct {
-	addr     string
-	dbPath   string
-	logLevel slog.Level
-	logJSON  bool
+	addr         string
+	dbPath       string
+	logLevel     slog.Level
+	logJSON      bool
+	cookieSecure bool
 }
 
 // loadConfig는 환경 변수를 기본값으로, 명령줄 플래그를 우선으로 설정을 읽는다.
@@ -47,6 +48,8 @@ func loadConfig(args []string, getenv func(string) string) (config, error) {
 	dbPath := fs.String("db", envOr(getenv, "DB_PATH", "data/shopadmin.db"), "SQLite 파일 경로")
 	level := fs.String("log-level", envOr(getenv, "LOG_LEVEL", "info"), "debug|info|warn|error")
 	logJSON := fs.Bool("log-json", getenv("LOG_JSON") == "1", "JSON 로그 출력")
+	cookieSecure := fs.Bool("cookie-secure", getenv("COOKIE_SECURE") != "0",
+		"세션 쿠키 Secure 속성 (localhost 외 HTTP로 접속할 때만 false)")
 
 	if err := fs.Parse(args); err != nil {
 		return config{}, err
@@ -56,7 +59,9 @@ func loadConfig(args []string, getenv func(string) string) (config, error) {
 	if err := lvl.UnmarshalText([]byte(*level)); err != nil {
 		return config{}, fmt.Errorf("invalid log level %q: %w", *level, err)
 	}
-	return config{addr: *addr, dbPath: *dbPath, logLevel: lvl, logJSON: *logJSON}, nil
+	return config{
+		addr: *addr, dbPath: *dbPath, logLevel: lvl, logJSON: *logJSON, cookieSecure: *cookieSecure,
+	}, nil
 }
 
 func envOr(getenv func(string) string, key, fallback string) string {
@@ -102,7 +107,7 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout 
 
 	srv := &http.Server{
 		Addr:    cfg.addr,
-		Handler: server.New(logger, conn, version),
+		Handler: server.New(logger, conn, server.Config{Version: version, CookieSecure: cfg.cookieSecure}),
 		// 타임아웃이 없으면 느린 클라이언트가 커넥션을 무한정 붙잡을 수 있다(Slowloris).
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,

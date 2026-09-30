@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -36,6 +37,25 @@ func (s *Server) serverError(w http.ResponseWriter, r *http.Request, err error) 
 		"err", err,
 	)
 	writeError(w, http.StatusInternalServerError, "internal server error")
+}
+
+const maxBodyBytes = 1 << 20 // 1MB
+
+// readJSON은 요청 본문을 dst로 디코딩한다.
+//   - MaxBytesReader: 거대한 본문으로 메모리를 고갈시키는 공격 방지
+//   - DisallowUnknownFields: 오타 난 필드("emial")를 조용히 무시하지 않고 에러로
+//   - dec.More(): {"a":1}{"b":2} 처럼 객체가 여러 개면 에러
+func readJSON(w http.ResponseWriter, r *http.Request, dst any) error {
+	r.Body = http.MaxBytesReader(w, r.Body, maxBodyBytes)
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(dst); err != nil {
+		return fmt.Errorf("invalid JSON body: %w", err)
+	}
+	if dec.More() {
+		return errors.New("body must contain a single JSON object")
+	}
+	return nil
 }
 
 // Page는 목록 응답의 공통 모양이다.

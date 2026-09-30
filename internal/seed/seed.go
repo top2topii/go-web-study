@@ -11,6 +11,7 @@ import (
 	"sort"
 	"time"
 
+	"shopadmin/internal/auth"
 	"shopadmin/internal/store"
 )
 
@@ -19,6 +20,9 @@ type Options struct {
 	Products  int
 	Days      int // 주문 생성 기간(오늘부터 과거로)
 	Now       time.Time
+	// Password는 시드 관리자 계정(admin@, viewer@example.com)의 공통 비밀번호.
+	// 비어 있으면 계정을 만들지 않는다. 공개 저장소이므로 코드에 적지 않고 실행 시 주입한다.
+	Password string
 }
 
 func DefaultOptions() Options {
@@ -26,7 +30,13 @@ func DefaultOptions() Options {
 }
 
 type Result struct {
-	Categories, Products, Customers, Orders, Items int
+	Users, Categories, Products, Customers, Orders, Items int
+}
+
+// SeedUsers는 시드로 만들어지는 로그인 계정 목록이다.
+var SeedUsers = []struct{ Email, Name, Role string }{
+	{"admin@example.com", "관리자", "admin"},
+	{"viewer@example.com", "뷰어", "viewer"},
 }
 
 // Run은 하나의 트랜잭션 안에서 모든 데이터를 넣는다.
@@ -48,6 +58,24 @@ func Run(ctx context.Context, db *sql.DB, opt Options) (res Result, err error) {
 
 	q := store.New(tx) // sqlc Queries는 *sql.DB와 *sql.Tx 모두 받는다(DBTX 인터페이스)
 	r := rand.New(rand.NewPCG(42, 2026))
+
+	if opt.Password != "" {
+		if err := auth.ValidatePassword(opt.Password); err != nil {
+			return res, fmt.Errorf("seed password: %w", err)
+		}
+		hash, err := auth.HashPassword(opt.Password)
+		if err != nil {
+			return res, err
+		}
+		for _, u := range SeedUsers {
+			if _, err := q.CreateUser(ctx, store.CreateUserParams{
+				Email: u.Email, Name: u.Name, PasswordHash: hash, Role: u.Role,
+			}); err != nil {
+				return res, fmt.Errorf("users: %w", err)
+			}
+			res.Users++
+		}
+	}
 
 	catIDs, err := seedCategories(ctx, q)
 	if err != nil {

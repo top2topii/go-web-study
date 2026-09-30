@@ -16,7 +16,11 @@ import (
 // context 키는 충돌을 막기 위해 외부에서 만들 수 없는 비공개 타입으로 정의한다.
 type ctxKey int
 
-const requestIDKey ctxKey = iota
+// iota는 const 블록 안에서 0, 1, 2...로 증가하는 값이다.
+const (
+	requestIDKey ctxKey = iota
+	userKey
+)
 
 // requestID는 요청마다 고유 ID를 만들어 context와 응답 헤더에 넣는다.
 func requestID(next http.Handler) http.Handler {
